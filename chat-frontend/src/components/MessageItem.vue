@@ -43,45 +43,67 @@ const timeStr = computed(() => formatTime(props.timestamp));
 .message-item {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 .avatar {
-  width: 32px;
-  height: 32px;
-  background: #dbefff;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #3a7cff 0%, #7f5fff 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  margin-right: 12px;
+  font-size: 22px;
+  margin-right: 14px;
   flex-shrink: 0;
+  color: #fff;
+  box-shadow: 0 2px 8px #3a7cff33;
+  border: 2px solid #232a4d;
+  transition: box-shadow 0.18s;
+}
+.user .avatar {
+  background: linear-gradient(135deg, #3a7cff 0%, #7f5fff 100%);
+  box-shadow: 0 2px 12px #3a7cff55;
+}
+.assistant .avatar {
+  background: linear-gradient(135deg, #232a4d 0%, #3a7cff 100%);
+  box-shadow: 0 2px 12px #7f5fff55;
 }
 .content {
   flex: 1;
   min-width: 0;
 }
 .bubble {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 15px;
-  color: #222;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 16px;
   word-break: break-word;
-  box-shadow: 0 1px 2px #eee;
+  box-shadow: 0 2px 12px #3a7cff22, 0 1px 2px #7f5fff22;
+  margin-bottom: 2px;
+  position: relative;
+  transition: background 0.18s, color 0.18s;
+  line-height: 1.7;
+  border: 1.5px solid transparent;
+  backdrop-filter: blur(1.5px);
 }
 .user .bubble {
-  background: #e6f7ff;
-  color: #222;
+  background: linear-gradient(90deg, #232a4d 0%, #3a7cff 100%);
+  color: #fff;
+  border: 1.5px solid #3a7cff;
+  text-shadow: 0 0 8px #3a7cff33;
 }
 .assistant .bubble {
-  background: #fff;
-  color: #222;
+  background: linear-gradient(90deg, #232a4d 0%, #7f5fff 100%);
+  color: #fff;
+  border: 1.5px solid #7f5fff;
+  text-shadow: 0 0 8px #7f5fff33;
 }
 .timestamp {
   font-size: 12px;
-  color: #aaa;
-  margin-top: 4px;
+  color: #b2bfff;
+  margin-top: 6px;
   text-align: right;
+  text-shadow: 0 0 6px #3a7cff33;
+  letter-spacing: 0.5px;
 }
 </style>

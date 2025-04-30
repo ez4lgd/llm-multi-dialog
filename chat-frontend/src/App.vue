@@ -71,40 +71,52 @@ onMounted(async () => {
 <style scoped>
 .app-root {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(120deg, #181c2f 60%, #232a4d 100%);
   display: flex;
   flex-direction: column;
 }
 .app-header {
-  height: 48px;
-  background: #409eff;
+  height: 54px;
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
-  letter-spacing: 2px;
-  box-shadow: 0 2px 4px #e0e0e0;
+  letter-spacing: 2.5px;
+  box-shadow: 0 2px 12px #3a7cff33, 0 2px 8px #7f5fff22;
   z-index: 10;
+  border-bottom: 1.5px solid #2e3657;
+  text-shadow: 0 0 12px #fff8, 0 0 4px #7f5fff;
+  user-select: none;
 }
 .main-layout {
   flex: 1;
   display: flex;
   min-width: 0;
   min-height: 0;
+  background: transparent;
 }
 .main-content {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  background: rgba(24,28,47,0.92);
+  border-radius: 18px;
+  margin: 18px 24px;
+  box-shadow: 0 4px 32px 0 #3a7cff22, 0 2px 8px 0 #7f5fff22;
+  overflow: hidden;
+  position: relative;
 }
 .no-conv {
-  color: #888;
+  color: #b2bfff;
   text-align: center;
   margin-top: 120px;
-  font-size: 18px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px #3a7cff99;
 }
 @media (max-width: 700px) {
   .main-layout {
@@ -112,6 +124,7 @@ onMounted(async () => {
   }
   .main-content {
     margin: 0;
+    border-radius: 0;
   }
 }
 </style>

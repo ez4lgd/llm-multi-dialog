@@ -139,86 +139,123 @@ onMounted(fetchMessages);
 
 <style scoped>
 .chat-window {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
+  background: rgba(24,28,47,0.98);
+  border-radius: 18px;
+  box-shadow: 0 4px 32px #3a7cff22, 0 2px 8px #7f5fff22;
   margin: 24px 24px 24px 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 48px - 48px);
+  height: calc(100vh - 54px - 36px);
   min-width: 0;
+  border: 1.5px solid #2e3657;
+  overflow: hidden;
+  position: relative;
 }
 .messages-area {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 24px 0 24px;
-  border-bottom: 1px solid #eee;
+  padding: 28px 28px 0 28px;
+  border-bottom: 1.5px solid #2e3657;
   position: relative;
+  background: transparent;
 }
 .loading,
 .empty,
 .ai-thinking,
 .error {
   text-align: center;
-  color: #888;
-  margin: 32px 0;
+  color: #b2bfff;
+  margin: 36px 0;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px #3a7cff33;
 }
 .ai-thinking {
-  color: #409eff;
+  color: #7f5fff;
   font-weight: bold;
+  text-shadow: 0 0 8px #7f5fff99;
 }
 .error {
-  color: #ff4d4f;
+  color: #ff4dff;
   font-weight: bold;
+  text-shadow: 0 0 8px #ff4dff99;
 }
 .input-area {
   display: flex;
   align-items: center;
-  padding: 16px 24px;
-  background: #f5f5f5;
-  border-radius: 0 0 8px 8px;
-  gap: 12px;
+  padding: 18px 28px;
+  background: rgba(36,40,66,0.98);
+  border-radius: 0 0 18px 18px;
+  gap: 14px;
+  box-shadow: 0 -2px 12px #3a7cff11;
 }
 .input {
   flex: 1;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 15px;
+  border: 1.5px solid #3a7cff55;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 16px;
   outline: none;
-  background: #fff;
+  background: rgba(24,28,47,0.92);
+  color: #e0e6ff;
+  transition: border 0.18s, background 0.18s;
+  box-shadow: 0 2px 8px #3a7cff11;
+}
+.input:focus {
+  border: 1.5px solid #7f5fff;
+  background: rgba(36,40,66,1);
 }
 .input:disabled {
-  background: #f7faff;
+  background: #232a4d;
+  color: #888;
 }
 .send-btn {
-  background: #409eff;
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  padding: 8px 18px;
-  font-size: 15px;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: 0 2px 8px #3a7cff33;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.15s;
+}
+.send-btn:hover:enabled {
+  background: linear-gradient(90deg, #7f5fff 0%, #3a7cff 100%);
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px 0 #7f5fff44;
 }
 .send-btn:disabled {
-  background: #b3d8ff;
+  background: #2e3657;
+  color: #888;
   cursor: not-allowed;
+  box-shadow: none;
 }
 .clear-btn {
-  background: #fff;
-  color: #409eff;
-  border: 1px solid #409eff;
-  border-radius: 4px;
-  padding: 8px 14px;
-  font-size: 15px;
+  background: transparent;
+  color: #7f5fff;
+  border: 1.5px solid #7f5fff;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.18s, color 0.18s, border 0.18s, transform 0.15s;
+  box-shadow: 0 2px 8px #7f5fff22;
+}
+.clear-btn:hover:enabled {
+  background: #7f5fff22;
+  color: #fff;
+  border: 1.5px solid #fff;
+  transform: scale(1.04);
 }
 .clear-btn:disabled {
-  color: #b3d8ff;
-  border-color: #b3d8ff;
+  color: #888;
+  border-color: #2e3657;
   cursor: not-allowed;
+  background: transparent;
+  box-shadow: none;
 }
 </style>

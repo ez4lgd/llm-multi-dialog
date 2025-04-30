@@ -106,46 +106,62 @@ watch(() => props.activeId, fetchConversations);
 <style scoped>
 .sidebar {
   width: 240px;
-  background: #f7faff;
-  border-right: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #181c2f 60%, #232a4d 100%);
+  border-right: 1.5px solid #2e3657;
   height: 100vh;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 16px 0 rgba(0,0,0,0.18);
 }
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 8px 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f7faff;
+  padding: 18px 18px 10px 18px;
+  border-bottom: 1.5px solid #2e3657;
+  background: rgba(24,28,47,0.95);
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
 }
 .sidebar-title {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: bold;
+  color: #fff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px #3a7cff99;
 }
 .new-btn {
-  background: #409eff;
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  padding: 4px 12px;
+  border-radius: 8px;
+  padding: 6px 16px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px 0 #3a7cff33;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.new-btn:hover {
+  background: linear-gradient(90deg, #7f5fff 0%, #3a7cff 100%);
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px 0 #7f5fff44;
 }
 .new-btn:active {
-  background: #337ecc;
+  background: #3a7cff;
 }
 .sidebar-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 10px 0;
+  background: transparent;
 }
 .sidebar-loading,
 .sidebar-empty {
-  color: #999;
+  color: #7f8fa6;
   text-align: center;
-  margin-top: 32px;
+  margin-top: 40px;
+  font-size: 15px;
+  letter-spacing: 1px;
 }
 ul {
   list-style: none;
@@ -156,14 +172,34 @@ ul {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  border-radius: 8px;
-  margin: 4px 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin: 6px 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  background: rgba(255,255,255,0.04);
+  box-shadow: 0 2px 8px 0 rgba(58,124,255,0.04);
+  transition: background 0.18s, box-shadow 0.18s;
+  border: 1.5px solid transparent;
+  position: relative;
+  backdrop-filter: blur(2px);
 }
 .sidebar-item.active {
-  background: #dbefff;
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
+  border: 1.5px solid #7f5fff;
+  box-shadow: 0 0 16px 0 #3a7cff55, 0 2px 8px 0 #7f5fff33;
+  color: #fff;
+}
+.sidebar-item.active .item-title {
+  color: #fff;
+  text-shadow: 0 0 8px #fff8, 0 0 2px #7f5fff;
+}
+.sidebar-item:hover {
+  background: linear-gradient(90deg, #232a4d 0%, #3a7cff 100%);
+  box-shadow: 0 0 12px 0 #3a7cff33;
+}
+.sidebar-item:hover .item-title {
+  color: #fff;
+  text-shadow: 0 0 8px #3a7cff99;
 }
 .sidebar-item:hover .delete-btn {
   display: inline-block;
@@ -173,12 +209,14 @@ ul {
   min-width: 0;
 }
 .item-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: #222;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e6ff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+  transition: color 0.18s, text-shadow 0.18s;
 }
 .item-summary {
   font-size: 13px;
@@ -191,15 +229,18 @@ ul {
   display: none;
   background: none;
   border: none;
-  color: #ff4d4f;
-  font-size: 16px;
-  margin-left: 8px;
+  color: #ff4dff;
+  font-size: 18px;
+  margin-left: 10px;
   cursor: pointer;
   border-radius: 50%;
-  padding: 2px 6px;
-  transition: background 0.2s;
+  padding: 3px 8px;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 0 0 0 transparent;
 }
 .delete-btn:hover {
-  background: #ffeaea;
+  background: #2e3657;
+  color: #fff;
+  box-shadow: 0 0 8px 0 #ff4dff99;
 }
 </style>
