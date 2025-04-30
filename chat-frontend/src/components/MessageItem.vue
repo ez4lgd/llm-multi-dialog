@@ -2,7 +2,7 @@
   <div :class="['message-item', roleClass]">
     <div class="avatar">{{ role === 'user' ? '🧑' : '🤖' }}</div>
     <div class="content">
-      <div class="bubble" v-html="renderedContent"></div>
+      <div class="bubble markdown-body" v-html="renderedContent"></div>
       <div class="timestamp">{{ timeStr }}</div>
     </div>
   </div>
@@ -20,10 +20,31 @@ const props = defineProps({
 
 // markdown 渲染
 import MarkdownIt from 'markdown-it';
+
+// 假设 highlight.js 已通过 CDN 注入（window.hljs），并引入 github-markdown-css
 const md = new MarkdownIt({
   html: false,
   linkify: true,
-  breaks: true
+  breaks: true,
+  highlight: function (str, lang) {
+    if (window.hljs) {
+      if (lang && window.hljs.getLanguage(lang)) {
+        try {
+          return '<pre class="hljs"><code>' +
+            window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+            '</code></pre>';
+        } catch (__) {}
+      }
+      // 未指定语言时自动高亮
+      try {
+        return '<pre class="hljs"><code>' +
+          window.hljs.highlightAuto(str).value +
+          '</code></pre>';
+      } catch (__) {}
+    }
+    // 未加载 highlight.js 时降级
+    return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
 });
 const renderedContent = computed(() => md.render(props.content));
 
@@ -73,7 +94,10 @@ const timeStr = computed(() => formatTime(props.timestamp));
   flex: 1;
   min-width: 0;
 }
-.bubble {
+.bubble.markdown-body {
+  /* 继承气泡样式，覆盖 github-markdown-css 的背景和字体色 */
+  background: inherit !important;
+  color: inherit !important;
   border-radius: 14px;
   padding: 14px 18px;
   font-size: 16px;
