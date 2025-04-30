@@ -35,6 +35,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
   activeId: String
@@ -79,21 +80,10 @@ function handleSelect(id) {
   emits('select', id);
 }
 async function handleNewConversation() {
-  // 发送消息接口自动新建会话
-  const res = await fetch('/api/v1/conversations/', { method: 'GET' });
-  const data = await res.json();
-  let newId = null;
-  if (Array.isArray(data.data) && data.data.length > 0) {
-    // 查找不存在于当前列表的 id
-    const existIds = conversations.value.map(c => c.conversation_id);
-    newId = data.data.find(id => !existIds.includes(id));
-    if (!newId) {
-      // fallback: 取第一个
-      newId = data.data[0];
-    }
-  }
+  // 生成唯一 id，结合 uuid 和时间戳
+  const newId = `${uuidv4()}-${Date.now()}`;
   emits('new', newId);
-  await fetchConversations();
+  // 不需要立即 fetchConversations，等发送消息后自动创建
 }
 async function handleDelete(id) {
   await fetch(`/api/v1/conversations/${id}`, { method: 'DELETE' });
