@@ -70,10 +70,11 @@ onMounted(async () => {
 
 <style scoped>
 .app-root {
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(120deg, #181c2f 60%, #232a4d 100%);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .app-header {
   height: 54px;
@@ -106,6 +107,7 @@ onMounted(async () => {
   background: rgba(24,28,47,0.92);
   border-radius: 18px;
   margin: 18px 24px;
+  padding: 0;
   box-shadow: 0 4px 32px 0 #3a7cff22, 0 2px 8px 0 #7f5fff22;
   overflow: hidden;
   position: relative;
