@@ -19,8 +19,8 @@
           @click="handleSelect(conv.conversation_id)"
         >
           <div class="item-main">
-            <div class="item-title">{{ conv.name }}</div>
-            <div class="item-summary">{{ conv.summary }}</div>
+            <div class="item-title">{{ summaryTitle(conv.summary) }}</div>
+            <!-- <div class="item-summary">{{ conv.summary }}</div> -->
           </div>
           <button
             class="delete-btn"
@@ -36,6 +36,14 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * 获取 summary 前 10 个字作为标题，若为空则返回“无摘要”
+ */
+function summaryTitle(summary) {
+  if (!summary) return '无摘要';
+  return summary.length > 10 ? summary.slice(0, 10) : summary;
+}
 
 const props = defineProps({
   activeId: String
