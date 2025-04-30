@@ -1,0 +1,8 @@
+fastapi
+pydantic
+pydantic-settings
+python-jose
+langchain-openai
+langchain
+aiofiles
+pytest
