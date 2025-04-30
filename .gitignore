@@ -1,0 +1,40 @@
+# Node/Vue/Vite
+node_modules/
+dist/
+build/
+.vite/
+.env*
+*.local
+
+# Python/FastAPI
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.env*
+
+# Data & Logs
+data/
+logs/
+*.db
+*.log
+
+# Editor & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Test/CI
+coverage/
+.coverage
+
+# Package manager logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
