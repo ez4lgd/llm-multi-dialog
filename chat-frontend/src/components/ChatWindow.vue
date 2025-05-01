@@ -83,7 +83,15 @@ async function fetchMessages() {
 
 function scrollToBottom() {
   if (messagesArea.value) {
-    messagesArea.value.scrollTop = messagesArea.value.scrollHeight;
+    // 优先使用平滑滚动
+    if (typeof messagesArea.value.scrollTo === 'function') {
+      messagesArea.value.scrollTo({
+        top: messagesArea.value.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      messagesArea.value.scrollTop = messagesArea.value.scrollHeight;
+    }
   }
 }
 
@@ -159,6 +167,7 @@ onMounted(fetchMessages);
   border-bottom: 1.5px solid #2e3657;
   position: relative;
   background: transparent;
+  scroll-behavior: smooth;
 }
 .loading,
 .empty,
