@@ -20,15 +20,17 @@
       <div v-if="errorMsg" class="error">{{ errorMsg }}</div>
     </div>
     <div class="input-area">
-      <input
+      <textarea
         v-model="input"
         :disabled="aiThinking || loading"
         class="input"
-        type="text"
-        placeholder="请输入内容，回车发送"
-        @keydown.enter="handleSend"
-        @input="errorMsg = ''"
-      />
+        placeholder="请输入内容，回车发送，Shift+Enter换行"
+        rows="1"
+        ref="inputRef"
+        @keydown="handleInputKeydown"
+        @input="handleInput"
+        style="resize: none;"
+      ></textarea>
       <button
         class="send-btn"
         :disabled="!input.trim() || aiThinking || loading"
@@ -58,6 +60,7 @@ const loading = ref(false);
 const aiThinking = ref(false);
 const errorMsg = ref('');
 const messagesArea = ref(null);
+const inputRef = ref(null);
 
 async function fetchMessages() {
   if (!props.conversationId) return;
@@ -77,7 +80,7 @@ async function fetchMessages() {
   } finally {
     loading.value = false;
     await nextTick();
-    scrollToBottom();
+    // 进入会话时不再自动滚动到底部
   }
 }
 
@@ -110,8 +113,7 @@ async function handleSend() {
       messages.value = data.data.messages;
       input.value = '';
       emits('sent');
-      await nextTick();
-      scrollToBottom();
+      // 发送消息后不再自动滚动
     } else if (data.data && data.data.error) {
       errorMsg.value = data.data.error;
     } else {
@@ -122,6 +124,36 @@ async function handleSend() {
   } finally {
     aiThinking.value = false;
   }
+}
+
+/**
+ * 输入框自适应高度
+ */
+function autoResizeInput() {
+  const el = inputRef.value;
+  if (!el) return;
+  el.style.height = 'auto';
+  // 最大高度与CSS一致
+  const maxHeight = 120;
+  el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
+  el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+}
+
+// 处理输入框回车和换行
+function handleInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+  // Shift+Enter 默认行为即为换行，无需处理
+}
+
+/**
+ * 输入事件处理，清空错误并自适应高度
+ */
+function handleInput(e) {
+  errorMsg.value = '';
+  autoResizeInput();
 }
 
 async function handleClear() {
@@ -142,7 +174,12 @@ async function handleClear() {
 }
 
 watch(() => props.conversationId, fetchMessages, { immediate: true });
-onMounted(fetchMessages);
+onMounted(() => {
+  fetchMessages();
+  nextTick(() => {
+    autoResizeInput();
+  });
+});
 </script>
 
 <style scoped>
@@ -210,6 +247,12 @@ onMounted(fetchMessages);
   color: #e0e6ff;
   transition: border 0.18s, background 0.18s;
   box-shadow: 0 2px 8px #3a7cff11;
+  min-height: 40px;
+  max-height: 120px;
+  line-height: 1.6;
+  resize: none;
+  overflow-y: auto;
+  font-family: inherit;
 }
 .input:focus {
   border: 1.5px solid #7f5fff;
