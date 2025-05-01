@@ -56,13 +56,28 @@ async def list_conversations(
     size: int = Query(20, ge=1, le=100),
     # user=Depends(jwt_auth)
 ):
-    # 遍历 /data 目录，获取所有会话 id
+    # 遍历 /data 目录，获取所有会话 id 及 created_at
     all_files = [p for p in DATA_DIR.glob("*.json")]
-    all_ids = [p.stem for p in all_files]
-    total = len(all_ids)
+    convs = []
+    for p in all_files:
+        try:
+            async with aiofiles.open(p, "r", encoding="utf-8") as f:
+                content = await f.read()
+                obj = json.loads(content)
+                created_at = obj.get("created_at")
+                # 若无 created_at 字段，取文件创建时间
+                if not created_at:
+                    created_at = datetime.utcfromtimestamp(p.stat().st_ctime).isoformat() + "Z"
+                convs.append({"id": p.stem, "created_at": created_at})
+        except Exception as e:
+            logger.error(f"[会话ID:{p.stem}] 读取 created_at 失败: {e}")
+            convs.append({"id": p.stem, "created_at": "1970-01-01T00:00:00Z"})
+    # 按 created_at 降序排序
+    convs.sort(key=lambda x: x["created_at"], reverse=True)
+    total = len(convs)
     start = (page - 1) * size
     end = start + size
-    paged_ids = all_ids[start:end]
+    paged_ids = [c["id"] for c in convs[start:end]]
     return {
         "data": paged_ids,
         "meta": {"page": page, "size": size, "total": total}
