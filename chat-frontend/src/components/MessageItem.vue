@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted, nextTick } from 'vue';
 
 // props: role, content, timestamp
 const props = defineProps({
@@ -47,6 +47,56 @@ const md = new MarkdownIt({
   }
 });
 const renderedContent = computed(() => md.render(props.content));
+
+// 代码块一键复制
+onMounted(() => {
+  nextTick(() => {
+    const bubble = document.querySelectorAll('.bubble.markdown-body');
+    bubble.forEach(bub => {
+      // 只处理当前消息节点
+      // 由于组件复用，需限定作用域
+      const codes = bub.querySelectorAll('pre.hljs');
+      codes.forEach(pre => {
+        // 避免重复插入
+        if (pre.querySelector('.copy-btn')) return;
+        // 创建按钮
+        const btn = document.createElement('button');
+        btn.innerText = '复制代码';
+        btn.className = 'copy-btn';
+        btn.style.position = 'absolute';
+        btn.style.top = '8px';
+        btn.style.right = '12px';
+        btn.style.zIndex = '10';
+        btn.style.fontSize = '12px';
+        btn.style.padding = '2px 10px';
+        btn.style.background = '#3a7cff';
+        btn.style.color = '#fff';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '6px';
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '0.85';
+        btn.style.transition = 'opacity 0.18s';
+        btn.onmouseenter = () => btn.style.opacity = '1';
+        btn.onmouseleave = () => btn.style.opacity = '0.85';
+        btn.onclick = async (e) => {
+          e.stopPropagation();
+          const code = pre.querySelector('code');
+          if (!code) return;
+          try {
+            await navigator.clipboard.writeText(code.innerText);
+            btn.innerText = '已复制!';
+            setTimeout(() => { btn.innerText = '复制代码'; }, 1200);
+          } catch {
+            btn.innerText = '复制失败';
+            setTimeout(() => { btn.innerText = '复制代码'; }, 1200);
+          }
+        };
+        pre.style.position = 'relative';
+        pre.appendChild(btn);
+      });
+    });
+  });
+});
 
 // 角色样式
 const roleClass = computed(() => (props.role === 'user' ? 'user' : 'assistant'));
