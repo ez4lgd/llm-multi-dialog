@@ -51,15 +51,17 @@ md.use(markdownItMathjax3);
 
 // 对消息内容中的 LaTeX 公式进行标准化处理
 function normalizeLatex(content) {
-  // 块级公式：\[\s*([\s\S]+?)\s*\] => $$ $1 $$
+  console.log('normalizeLatex前', content);
+  // 只处理块级公式：\[\s*([\s\S]+?)\s*\] => $$ $1 $$
   content = content.replace(/\\\[\s*([\s\S]+?)\s*\\\]/g, (match, p1) => `$$\n${p1}\n$$`);
-  // 行内公式：\(\s*([^\)]+?)\s*\) => $ $1 $
-  content = content.replace(/\\\(\s*([^\)]+?)\s*\\\)/g, (match, p1) => `$${p1}$`);
+  // 行内公式：\(([\s\S]+?)\) => $ $1 $
+  content = content.replace(/\\\(([\s\S]+?)\\\)/g, (match, p1) => `$${p1.trim()}$`);
   // 保证每个块级公式 $$...$$ 前后有空行，避免与列表/标题等混淆
   content = content.replace(/([^\n])(\$\$[\s\S]+?\$\$)/g, '$1\n$2'); // 前补空行
   content = content.replace(/(\$\$[\s\S]+?\$\$)([^\n])/g, '$1\n$2'); // 后补空行
   // 合并多余空行
   content = content.replace(/\n{3,}/g, '\n\n');
+  console.log('normalizeLatex后', content);
   return content;
 }
 
