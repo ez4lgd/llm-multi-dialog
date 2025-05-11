@@ -20,6 +20,7 @@ const props = defineProps({
 
 // markdown 渲染
 import MarkdownIt from 'markdown-it';
+import markdownItMathjax3 from 'markdown-it-mathjax3';
 
 // 假设 highlight.js 已通过 CDN 注入（window.hljs），并引入 github-markdown-css
 const md = new MarkdownIt({
@@ -46,7 +47,18 @@ const md = new MarkdownIt({
     return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
   }
 });
-const renderedContent = computed(() => md.render(props.content));
+md.use(markdownItMathjax3);
+
+// 对消息内容中的 LaTeX 公式进行标准化处理
+function normalizeLatex(content) {
+  // 块级公式：\[\s*([\s\S]+?)\s*\] => $$ $1 $$
+  content = content.replace(/\\\[\s*([\s\S]+?)\s*\\\]/g, (match, p1) => `$$\n${p1}\n$$`);
+  // 行内公式：\(\s*([^\)]+?)\s*\) => $ $1 $
+  content = content.replace(/\\\(\s*([^\)]+?)\s*\\\)/g, (match, p1) => `$${p1}$`);
+  return content;
+}
+
+const renderedContent = computed(() => md.render(normalizeLatex(props.content)));
 
 // 代码块一键复制
 onMounted(() => {

@@ -38,7 +38,7 @@ class CustomAzureCallbackHandler(BaseCallbackHandler):
         print(f"Token 使用：总共 {self.total_tokens}（Prompt: {self.prompt_tokens}, Completion: {self.completion_tokens}）")
 
 def get_llm(
-    model_name="gpt-4o-002",
+    model_name="gpt-4.1",
     temperature=0.7,
     streaming=False,
     callbacks=None
