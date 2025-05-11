@@ -26,7 +26,7 @@ import markdownItMathjax3 from 'markdown-it-mathjax3';
 const md = new MarkdownIt({
   html: false,
   linkify: true,
-  breaks: true,
+  breaks: false,
   highlight: function (str, lang) {
     if (window.hljs) {
       if (lang && window.hljs.getLanguage(lang)) {
@@ -55,6 +55,11 @@ function normalizeLatex(content) {
   content = content.replace(/\\\[\s*([\s\S]+?)\s*\\\]/g, (match, p1) => `$$\n${p1}\n$$`);
   // 行内公式：\(\s*([^\)]+?)\s*\) => $ $1 $
   content = content.replace(/\\\(\s*([^\)]+?)\s*\\\)/g, (match, p1) => `$${p1}$`);
+  // 保证每个块级公式 $$...$$ 前后有空行，避免与列表/标题等混淆
+  content = content.replace(/([^\n])(\$\$[\s\S]+?\$\$)/g, '$1\n$2'); // 前补空行
+  content = content.replace(/(\$\$[\s\S]+?\$\$)([^\n])/g, '$1\n$2'); // 后补空行
+  // 合并多余空行
+  content = content.replace(/\n{3,}/g, '\n\n');
   return content;
 }
 
