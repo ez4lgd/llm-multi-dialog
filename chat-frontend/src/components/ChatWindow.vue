@@ -1,5 +1,10 @@
 <template>
   <div class="chat-window">
+    <ModelConfigPanel
+      :models="models"
+      :config="config"
+      @update:config="handleConfigUpdate"
+    />
     <div class="messages-area" ref="messagesArea">
       <template v-if="loading">
         <div class="loading">消息加载中...</div>
@@ -48,6 +53,7 @@
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue';
 import MessageItem from './MessageItem.vue';
+import ModelConfigPanel from './ModelConfigPanel.vue';
 
 const props = defineProps({
   conversationId: { type: String, required: true }
@@ -62,15 +68,53 @@ const errorMsg = ref('');
 const messagesArea = ref(null);
 const inputRef = ref(null);
 
-async function fetchMessages() {
+const models = ref([]);
+const config = ref({ model: '' });
+
+async function handleConfigUpdate(newConfig) {
+  config.value = { ...newConfig };
+  try {
+    await fetch(`/api/v1/conversations/${props.conversationId}/set_config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config.value)
+    });
+    // 更新后重新拉取会话数据，确保同步
+    await fetchConversationAndMessages();
+  } catch (e) {
+    // 忽略错误
+  }
+}
+
+async function fetchModels() {
+  try {
+    const res = await fetch('/api/v1/models');
+    const data = await res.json();
+    if (Array.isArray(data.data)) {
+      models.value = data.data;
+    }
+  } catch (e) {
+    // 忽略错误，保留空列表
+  }
+}
+
+async function fetchConversationAndMessages() {
   if (!props.conversationId) return;
   loading.value = true;
   errorMsg.value = '';
   try {
     const res = await fetch(`/api/v1/conversations/${props.conversationId}?size=100`);
     const data = await res.json();
-    if (data.data && Array.isArray(data.data.messages)) {
-      messages.value = data.data.messages;
+    if (data.data) {
+      // 兼容老数据
+      messages.value = Array.isArray(data.data.messages) ? data.data.messages : [];
+      if (data.data.config) {
+        config.value = { ...data.data.config };
+      } else if (data.data.model) {
+        config.value = { model: data.data.model };
+      } else if (models.value.length > 0) {
+        config.value = { model: models.value[0] };
+      }
     } else {
       messages.value = [];
     }
@@ -106,7 +150,10 @@ async function handleSend() {
     const res = await fetch(`/api/v1/conversations/${props.conversationId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: input.value.trim() })
+      body: JSON.stringify({ 
+        content: input.value.trim(),
+        model: config.value.model
+      })
     });
     const data = await res.json();
     if (data.data && Array.isArray(data.data.messages)) {
@@ -173,9 +220,16 @@ async function handleClear() {
   }
 }
 
-watch(() => props.conversationId, fetchMessages, { immediate: true });
+watch(() => props.conversationId, () => {
+  fetchModels().then(() => {
+    fetchConversationAndMessages();
+  });
+}, { immediate: true });
+
 onMounted(() => {
-  fetchMessages();
+  fetchModels().then(() => {
+    fetchConversationAndMessages();
+  });
   nextTick(() => {
     autoResizeInput();
   });

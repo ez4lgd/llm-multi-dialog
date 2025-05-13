@@ -3,6 +3,7 @@ import os
 import json
 from pathlib import Path
 from fastapi import APIRouter, Depends, Query, Path as FPath, Body
+from fastapi import APIRouter
 from core.auth import jwt_auth
 from modules.llm import llm_engine
 from core.logger import logger
@@ -17,7 +18,7 @@ router = APIRouter()
 def now_iso():
     return datetime.utcnow().isoformat() + "Z"
 
-def build_conversation_obj(conversation_id: str, messages: Optional[List[dict]] = None, name: Optional[str] = None, summary: Optional[str] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None):
+def build_conversation_obj(conversation_id: str, messages: Optional[List[dict]] = None, name: Optional[str] = None, summary: Optional[str] = None, created_at: Optional[str] = None, updated_at: Optional[str] = None, config: Optional[dict] = None):
     messages = messages or []
     if not name:
         # 默认取首条用户消息前10字
@@ -32,7 +33,8 @@ def build_conversation_obj(conversation_id: str, messages: Optional[List[dict]] 
         "summary": summary,
         "created_at": created_at or now,
         "updated_at": updated_at or now,
-        "messages": messages
+        "messages": messages,
+        "config": config if config is not None else {}
     }
 
 def build_message(role: str, content: str, timestamp: Optional[str] = None):
@@ -123,7 +125,8 @@ async def send_message(
     # user=Depends(jwt_auth)
 ):
     user_input = body.get("content", "")
-    logger.info(f"[会话ID:{conversation_id}] 用户输入: {user_input}")
+    model = body.get("model")
+    logger.info(f"[会话ID:{conversation_id}] 用户输入: {user_input}, 模型: {model}")
 
     # 读取历史会话对象
     conv_path = get_conversation_path(conversation_id)
@@ -140,12 +143,23 @@ async def send_message(
 
     messages = conv_obj.get("messages", [])
 
+    # 处理模型参数，优先用本次传入的 model
+    if model:
+        if "config" not in conv_obj or not isinstance(conv_obj["config"], dict):
+            conv_obj["config"] = {}
+        conv_obj["config"]["model"] = model
+        conv_obj["model"] = model  # 兼容老字段
+
     # 添加本次用户输入
     user_msg = build_message("user", user_input)
     messages.append(user_msg)
 
-    # 调用大模型
-    reply = await llm_engine.chat(messages)
+    # 调用大模型，优先用本次模型参数
+    chat_model = model or conv_obj.get("config", {}).get("model")
+    if chat_model:
+        reply = await llm_engine.chat(messages, model=chat_model)
+    else:
+        reply = await llm_engine.chat(messages)
     logger.info(f"[会话ID:{conversation_id}] 模型输出: {reply}")
 
     # 添加AI回复
@@ -200,3 +214,34 @@ async def delete_conversation(
     else:
         logger.warning(f"[会话ID:{conversation_id}] 会话不存在，无法删除")
         return {"data": {"success": False, "error": "会话不存在"}}
+
+# 新增：设置会话模型/参数配置
+@router.post("/{conversation_id}/set_config", summary="设置会话模型/参数配置")
+async def set_conversation_config(
+    conversation_id: str,
+    body: dict = Body(...),
+    # user=Depends(jwt_auth)
+):
+    conv_path = get_conversation_path(conversation_id)
+    if not conv_path.exists():
+        return {"data": {"error": "会话不存在"}}
+    try:
+        async with aiofiles.open(conv_path, "r", encoding="utf-8") as f:
+            content = await f.read()
+            conv_obj = json.loads(content)
+    except Exception as e:
+        logger.error(f"[会话ID:{conversation_id}] 读取会话失败: {e}")
+        return {"data": {"error": "读取会话失败"}}
+    # 更新config字段
+    conv_obj["config"] = body
+    # 兼容老字段
+    if "model" in body:
+        conv_obj["model"] = body["model"]
+    conv_obj["updated_at"] = now_iso()
+    try:
+        async with aiofiles.open(conv_path, "w", encoding="utf-8") as f:
+            await f.write(json.dumps(conv_obj, ensure_ascii=False, indent=2))
+    except Exception as e:
+        logger.error(f"[会话ID:{conversation_id}] 保存配置失败: {e}")
+        return {"data": {"error": "保存配置失败"}}
+    return {"data": conv_obj.get("config", {})}

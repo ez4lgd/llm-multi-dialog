@@ -45,7 +45,11 @@ def get_llm(
 ):
     """
     获取 AzureChatOpenAI 实例，自动读取配置
+    如果模型名以'o'开头（如Azure的o系列模型），则强制temperature=1
     """
+    # 判断是否为Azure的o开头模型
+    if isinstance(model_name, str) and model_name.startswith("o"):
+        temperature = 1
     llm = AzureChatOpenAI(
         openai_api_version=settings.AZURE_OPENAI_API_VERSION,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
@@ -63,7 +67,7 @@ class LLMEngine:
         self.engine = engine
         self.api_key = api_key or settings.AZURE_OPENAI_API_KEY
 
-    async def chat(self, messages, model="gpt-4o-002", temperature=0.7, streaming=False):
+    async def chat(self, messages, model="gpt-4.1", temperature=0.7, streaming=False):
         """
         支持 AzureChatOpenAI 聊天
         messages: [{"role": "user"/"assistant", "content": "..."}]
