@@ -48,7 +48,9 @@ def build_conversation_obj(conversation_id: str, messages: Optional[List[dict]] 
         first_user = next((m for m in messages if m.get("role") == "user"), None)
         name = first_user["content"][:10] if first_user and first_user.get("content") else conversation_id
     if not summary:
-        summary = messages[-1]["content"] if messages else ""
+        # 取首条用户消息内容作为 summary，如无则设为空字符串
+        first_user = next((m for m in messages if m.get("role") == "user"), None)
+        summary = first_user["content"] if first_user and first_user.get("content") else ""
     now = now_iso()
     # 转换 messages 为 Message 对象列表
     msg_objs = [Message(**m) if not isinstance(m, Message) else m for m in messages]
@@ -191,7 +193,9 @@ async def send_message(
 
     # 更新会话元数据
     conv_obj["messages"] = messages
-    conv_obj["summary"] = reply
+    # summary 只在首次用户输入时赋值，后续保持不变
+    if not conv_obj.get("summary"):
+        conv_obj["summary"] = user_input
     conv_obj["updated_at"] = now_iso()
     if not conv_obj.get("created_at"):
         conv_obj["created_at"] = now_iso()
