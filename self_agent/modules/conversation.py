@@ -3,16 +3,39 @@ import os
 import json
 from pathlib import Path
 from fastapi import APIRouter, Depends, Query, Path as FPath, Body
-from fastapi import APIRouter
 from core.auth import jwt_auth
 from modules.llm import llm_engine
 from core.logger import logger
 import aiofiles
-from typing import List, Any, Optional
+from typing import List, Optional
 from datetime import datetime
 import uuid
 
 router = APIRouter()
+
+# Pydantic 数据结构定义
+from pydantic import BaseModel, Field
+
+def now_iso():
+    return datetime.utcnow().isoformat() + "Z"
+
+class Message(BaseModel):
+    role: str
+    content: str
+    timestamp: str = Field(default_factory=now_iso)
+
+class ConversationConfig(BaseModel):
+    model: str = "gpt-4.1"
+    # 可扩展更多参数，如 temperature, max_tokens 等
+
+class Conversation(BaseModel):
+    conversation_id: str
+    name: str = None
+    summary: str = None
+    created_at: str = None
+    updated_at: str = None
+    messages: list[Message] = Field(default_factory=list)
+    config: ConversationConfig = Field(default_factory=ConversationConfig)
 
 # 数据结构定义
 def now_iso():
@@ -27,22 +50,22 @@ def build_conversation_obj(conversation_id: str, messages: Optional[List[dict]] 
     if not summary:
         summary = messages[-1]["content"] if messages else ""
     now = now_iso()
-    return {
-        "conversation_id": conversation_id,
-        "name": name,
-        "summary": summary,
-        "created_at": created_at or now,
-        "updated_at": updated_at or now,
-        "messages": messages,
-        "config": config if config is not None else {}
-    }
+    # 转换 messages 为 Message 对象列表
+    msg_objs = [Message(**m) if not isinstance(m, Message) else m for m in messages]
+    # 转换 config 为 ConversationConfig
+    config_obj = ConversationConfig(**config) if config is not None and not isinstance(config, ConversationConfig) else (config or ConversationConfig())
+    return Conversation(
+        conversation_id=conversation_id,
+        name=name,
+        summary=summary,
+        created_at=created_at or now,
+        updated_at=updated_at or now,
+        messages=msg_objs,
+        config=config_obj
+    ).dict()
 
 def build_message(role: str, content: str, timestamp: Optional[str] = None):
-    return {
-        "role": role,
-        "content": content,
-        "timestamp": timestamp or now_iso()
-    }
+    return Message(role=role, content=content, timestamp=timestamp or now_iso()).dict()
 
 # 路径与数据目录
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -60,7 +83,7 @@ async def list_conversations(
 ):
     # 遍历 /data 目录，获取所有会话 id 及 created_at
     all_files = [p for p in DATA_DIR.glob("*.json")]
-    convs = []
+    conversations = []
     for p in all_files:
         try:
             async with aiofiles.open(p, "r", encoding="utf-8") as f:
@@ -70,18 +93,18 @@ async def list_conversations(
                 # 若无 created_at 字段，取文件创建时间
                 if not created_at:
                     created_at = datetime.utcfromtimestamp(p.stat().st_ctime).isoformat() + "Z"
-                convs.append({"id": p.stem, "created_at": created_at})
+                conversations.append({"id": p.stem, "created_at": created_at})
         except Exception as e:
             logger.error(f"[会话ID:{p.stem}] 读取 created_at 失败: {e}")
-            convs.append({"id": p.stem, "created_at": "1970-01-01T00:00:00Z"})
+            conversations.append({"id": p.stem, "created_at": "1970-01-01T00:00:00Z"})
     # 按 created_at 降序排序
-    convs.sort(key=lambda x: x["created_at"], reverse=True)
-    total = len(convs)
+    conversations.sort(key=lambda x: x["created_at"], reverse=True)
+    total = len(conversations)
     start = (page - 1) * size
     end = start + size
-    paged_ids = [c["id"] for c in convs[start:end]]
+    conversation_ids = [c["id"] for c in conversations[start:end]]
     return {
-        "data": paged_ids,
+        "data": conversation_ids,
         "meta": {"page": page, "size": size, "total": total}
     }
 
