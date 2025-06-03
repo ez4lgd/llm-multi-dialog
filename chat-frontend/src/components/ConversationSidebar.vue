@@ -4,7 +4,7 @@
       <span class="sidebar-title">会话列表</span>
       <button class="new-btn" @click="handleNewConversation">新建会话</button>
     </div>
-    <div class="sidebar-list">
+    <div class="sidebar-list" ref="sidebarListRef" @scroll="handleScroll">
       <template v-if="loading">
         <div class="sidebar-loading">加载中...</div>
       </template>
@@ -29,6 +29,15 @@
           >🗑️</button>
         </li>
       </ul>
+      <div
+        v-if="!loading && conversations.length > 0 && hasMore && showLoadMoreBtn"
+        class="sidebar-load-more sticky-load-more"
+      >
+        <button class="load-more-btn" :disabled="isLoadingMore" @click="loadMoreConversations">
+          {{ isLoadingMore ? '加载中...' : '加载更多' }}
+        </button>
+        
+      </div>
     </div>
   </aside>
 </template>
@@ -50,22 +59,37 @@ const props = defineProps({
 });
 const emits = defineEmits(['select', 'new', 'deleted']);
 
+const allConversations = ref([]);
 const conversations = ref([]);
 const loading = ref(false);
+const isLoadingMore = ref(false);
+const page = ref(1);
+const pageSize = 20;
+const hasMore = ref(true);
+const sidebarListRef = ref(null);
+const showLoadMoreBtn = ref(false);
 
-async function fetchConversations() {
-  loading.value = true;
-  console.log('[fetchConversations] start');
+async function fetchConversations(reset = false) {
+  if (loading.value || isLoadingMore.value) return;
+  if (reset) {
+    page.value = 1;
+    allConversations.value = [];
+    conversations.value = [];
+    hasMore.value = true;
+  }
+  if (!hasMore.value) return;
+  if (page.value === 1) loading.value = true;
+  else isLoadingMore.value = true;
   try {
-    const res = await fetch('/api/v1/conversations/');
+    const res = await fetch(`/api/v1/conversations/?page=${page.value}&size=${pageSize}`);
     const data = await res.json();
     if (Array.isArray(data.data)) {
-      // 需批量获取详情
+      // 批量获取详情
       const detailList = await Promise.all(
         data.data.map(async (id) => {
           const dRes = await fetch(`/api/v1/conversations/${id}?size=1`);
           const dData = await dRes.json();
-         return dData.data
+          return dData.data
             ? {
                 conversation_id: dData.data.conversation_id,
                 name: dData.data.name,
@@ -74,13 +98,58 @@ async function fetchConversations() {
             : null;
         })
       );
-      conversations.value = detailList.filter(Boolean);
+      const filtered = detailList.filter(Boolean);
+      if (reset) {
+        allConversations.value = filtered;
+      } else {
+        allConversations.value = allConversations.value.concat(filtered);
+      }
+      conversations.value = allConversations.value.slice();
+      // 判断是否还有更多
+      if (
+        !data.meta ||
+        !data.meta.total ||
+        allConversations.value.length >= data.meta.total ||
+        filtered.length < pageSize
+      ) {
+        hasMore.value = false;
+      } else {
+        hasMore.value = true;
+      }
+      page.value += 1;
     }
   } catch (e) {
     console.error('[fetchConversations] error:', e);
-    conversations.value = [];
+    if (reset) {
+      allConversations.value = [];
+      conversations.value = [];
+    }
+    hasMore.value = false;
   } finally {
     loading.value = false;
+    isLoadingMore.value = false;
+    // 调试：打印实际会话数量
+    console.log('[debug] allConversations.length:', allConversations.value.length);
+  }
+}
+
+function loadMoreConversations() {
+  fetchConversations(false);
+}
+
+function handleScroll() {
+  const el = sidebarListRef.value;
+  if (!el) return;
+  // 距底部小于30px时自动加载
+  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 30;
+  showLoadMoreBtn.value = atBottom && hasMore.value && !loading.value && !isLoadingMore.value;
+  if (
+    atBottom &&
+    !loading.value &&
+    !isLoadingMore.value &&
+    hasMore.value
+  ) {
+    loadMoreConversations();
   }
 }
 
@@ -99,7 +168,12 @@ async function handleDelete(id) {
   await fetchConversations();
 }
 
-onMounted(fetchConversations);
+onMounted(() => {
+  fetchConversations(true);
+  setTimeout(() => {
+    handleScroll();
+  }, 0);
+});
 </script>
 
 <style scoped>
@@ -241,5 +315,39 @@ ul {
   background: #2e3657;
   color: #fff;
   box-shadow: 0 0 8px 0 #ff4dff99;
+}
+
+.sidebar-load-more {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 0 0;
+}
+/* 固定加载更多按钮在底部 */
+.sticky-load-more {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(0deg, #181c2f 90%, transparent 100%);
+  z-index: 2;
+  padding-bottom: 10px;
+}
+.load-more-btn {
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px 0 #3a7cff33;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.load-more-btn:hover {
+  background: linear-gradient(90deg, #7f5fff 0%, #3a7cff 100%);
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px 0 #7f5fff44;
+}
+.load-more-btn:active {
+  background: #3a7cff;
 }
 </style>
