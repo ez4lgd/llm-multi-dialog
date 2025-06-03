@@ -100,7 +100,6 @@ async function handleDelete(id) {
 }
 
 onMounted(fetchConversations);
-watch(() => props.activeId, fetchConversations);
 </script>
 
 <style scoped>
@@ -108,7 +107,7 @@ watch(() => props.activeId, fetchConversations);
   width: 240px;
   background: linear-gradient(135deg, #181c2f 60%, #232a4d 100%);
   border-right: 1.5px solid #2e3657;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 16px 0 rgba(0,0,0,0.18);
