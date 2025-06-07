@@ -7,7 +7,6 @@
         <button
           class="copy-md-btn"
           @click="copyMarkdown"
-          style="margin-left: 8px; height: 32px; align-self: flex-start;"
         >{{ copyMdBtnText }}</button>
       </div>
       <div class="timestamp">{{ timeStr }}</div>
@@ -217,5 +216,30 @@ const timeStr = computed(() => formatTime(props.timestamp));
   text-align: right;
   text-shadow: 0 0 6px #3a7cff33;
   letter-spacing: 0.5px;
+}
+.copy-md-btn {
+  margin-left: 12px;
+  height: 32px;
+  align-self: flex-start;
+  padding: 0 18px;
+  background: linear-gradient(90deg, #232a4d 0%, #3a7cff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px #3a7cff33;
+  cursor: pointer;
+  opacity: 0.88;
+  transition: background 0.18s, color 0.18s, opacity 0.18s, box-shadow 0.18s;
+  position: relative;
+  z-index: 2;
+}
+.copy-md-btn:hover, .copy-md-btn:focus {
+  opacity: 1;
+  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px #7f5fff44;
+  outline: none;
 }
 </style>
