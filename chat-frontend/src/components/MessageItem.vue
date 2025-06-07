@@ -2,14 +2,33 @@
   <div :class="['message-item', roleClass]">
     <div class="avatar">{{ role === 'user' ? '🧑' : '🤖' }}</div>
     <div class="content">
-      <div class="bubble markdown-body" v-html="renderedContent"></div>
+      <div style="display: flex; align-items: flex-start;">
+        <div class="bubble markdown-body" v-html="renderedContent"></div>
+        <button
+          class="copy-md-btn"
+          @click="copyMarkdown"
+          style="margin-left: 8px; height: 32px; align-self: flex-start;"
+        >{{ copyMdBtnText }}</button>
+      </div>
       <div class="timestamp">{{ timeStr }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, nextTick } from 'vue';
+import { computed, onMounted, nextTick, ref } from 'vue';
+
+const copyMdBtnText = ref('复制 Markdown');
+async function copyMarkdown() {
+  try {
+    await navigator.clipboard.writeText(props.content);
+    copyMdBtnText.value = '已复制!';
+    setTimeout(() => { copyMdBtnText.value = '复制 Markdown'; }, 1200);
+  } catch {
+    copyMdBtnText.value = '复制失败';
+    setTimeout(() => { copyMdBtnText.value = '复制 Markdown'; }, 1200);
+  }
+}
 
 // props: role, content, timestamp
 const props = defineProps({
