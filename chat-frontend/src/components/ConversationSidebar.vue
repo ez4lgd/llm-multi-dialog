@@ -199,14 +199,14 @@ onMounted(() => {
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   padding: 18px 18px 10px 18px;
   border-bottom: 1.5px solid #2e3657;
   background: rgba(24,28,47,0.95);
   box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
 }
 .sidebar-title {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: bold;
   color: #fff;
   letter-spacing: 1px;
@@ -217,9 +217,9 @@ onMounted(() => {
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 6px 16px;
+  padding: 4px 10px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   box-shadow: 0 2px 8px 0 #3a7cff33;
   transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
@@ -365,11 +365,11 @@ ul {
   color: #232a4d;
   border: none;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  margin-left: 8px;
+  margin-left: 0;
   box-shadow: 0 2px 8px 0 #f7b73133;
   transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
 }
