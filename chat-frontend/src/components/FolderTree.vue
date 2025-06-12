@@ -1,10 +1,11 @@
 <template>
   <div class="folder-tree-modal" v-if="visible">
-    <div class="folder-tree-header">
-      <span>收藏夹</span>
-      <button class="close-btn" @click="close">×</button>
-    </div>
-    <div class="folder-tree-body">
+    <div class="folder-tree-content">
+      <div class="folder-tree-header">
+        <span>收藏夹</span>
+        <button class="close-btn" @click="close">×</button>
+      </div>
+      <div class="folder-tree-body">
       <div class="folder-tree-actions">
         <input v-model="newFolderName" placeholder="新建收藏夹名称" @keyup.enter="createFolder" />
         <button @click="createFolder" :disabled="creating">新建</button>
@@ -49,6 +50,7 @@
       <input v-model="renameName" placeholder="新名称" @keyup.enter="confirmRename" />
       <button @click="confirmRename">确定</button>
       <button @click="cancelRename">取消</button>
+    </div>
     </div>
   </div>
 </template>
@@ -236,23 +238,34 @@ onMounted(() => {
 .folder-tree-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.25);
+  background: rgba(20,22,30,0.85);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.folder-tree-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 420px;
+  min-height: 320px;
+  border-radius: 10px;
+  box-shadow: 0 4px 32px 0 #0008;
+  overflow: hidden;
+  background: none;
+}
 .folder-tree-header {
-  background: #409EFF;
+  background: #23272f;
   color: #fff;
   font-size: 18px;
   font-weight: bold;
   padding: 12px 24px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #333a4a;
 }
 .close-btn {
   background: none;
@@ -260,19 +273,48 @@ onMounted(() => {
   color: #fff;
   font-size: 22px;
   cursor: pointer;
+  transition: color 0.18s;
+}
+.close-btn:hover {
+  color: #ff5c5c;
 }
 .folder-tree-body {
-  background: #fff;
-  padding: 18px 24px;
-  min-width: 420px;
-  min-height: 320px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  background: #1e1e23;
+  padding: 20px 28px;
+  color: #e6e6e6;
 }
 .folder-tree-actions {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
+}
+.folder-tree-actions input {
+  background: #23272f;
+  color: #fff;
+  border: 1px solid #333a4a;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.18s;
+}
+.folder-tree-actions input:focus {
+  border: 1.5px solid #409EFF;
+}
+.folder-tree-actions button {
+  background: linear-gradient(90deg, #409EFF 60%, #7f5fff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.folder-tree-actions button:disabled {
+  background: #444a;
+  color: #aaa;
+  cursor: not-allowed;
 }
 .folder-list {
   list-style: none;
@@ -280,69 +322,108 @@ onMounted(() => {
   margin: 0;
 }
 .folder-item {
-  margin-bottom: 12px;
-  background: #f7faff;
-  border-radius: 6px;
-  padding: 8px 12px;
+  margin-bottom: 14px;
+  background: #23272f;
+  border-radius: 7px;
+  padding: 10px 14px;
+  border: 1px solid #333a4a;
+  box-shadow: 0 2px 8px 0 #0002;
 }
 .folder-name {
   font-weight: 600;
-  color: #409EFF;
-  margin-right: 8px;
+  color: #7f5fff;
+  margin-right: 10px;
 }
 .rename-btn, .delete-btn, .remove-btn, .add-btn {
-  margin-left: 6px;
-  background: #eee;
-  border: none;
+  margin-left: 8px;
+  background: #23272f;
+  color: #bdbfff;
+  border: 1px solid #333a4a;
   border-radius: 4px;
-  padding: 2px 8px;
+  padding: 3px 12px;
   cursor: pointer;
   font-size: 13px;
+  transition: background 0.18s, color 0.18s, border 0.18s;
 }
 .rename-btn:hover, .delete-btn:hover, .remove-btn:hover, .add-btn:hover {
-  background: #409EFF;
+  background: linear-gradient(90deg, #409EFF 60%, #7f5fff 100%);
   color: #fff;
+  border: 1px solid #409EFF;
 }
 .conv-list {
   list-style: none;
-  padding: 0 0 0 18px;
-  margin: 6px 0 0 0;
+  padding: 0 0 0 22px;
+  margin: 8px 0 0 0;
 }
 .conv-item {
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   display: flex;
   align-items: center;
 }
 .empty-tip {
-  color: #aaa;
-  margin-top: 24px;
+  color: #666;
+  margin-top: 28px;
   text-align: center;
+  font-size: 15px;
 }
 .rename-modal {
   position: fixed;
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 16px 0 #0002;
-  padding: 24px 32px;
+  background: #23272f;
+  border-radius: 10px;
+  box-shadow: 0 2px 24px 0 #0008;
+  padding: 28px 38px;
   z-index: 1100;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
+  border: 1px solid #333a4a;
+}
+.rename-modal input {
+  background: #1e1e23;
+  color: #fff;
+  border: 1px solid #333a4a;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.18s;
+}
+.rename-modal input:focus {
+  border: 1.5px solid #409EFF;
+}
+.rename-modal button {
+  background: linear-gradient(90deg, #409EFF 60%, #7f5fff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
 }
 .tag-input {
-  border: 1px solid #ccc;
+  background: #23272f;
+  color: #fff;
+  border: 1px solid #333a4a;
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 3px 8px;
   outline: none;
+  font-size: 13px;
   transition: border 0.18s;
 }
 .tag-input:focus {
   border: 1.5px solid #409EFF;
 }
-.conv-summary:hover {
+.conv-summary {
+  cursor: pointer;
+  color: #409EFF;
   text-decoration: underline;
+  transition: color 0.18s;
+}
+.conv-summary:hover {
   color: #7f5fff;
+  text-shadow: 0 0 2px #7f5fff88;
 }
 </style>
