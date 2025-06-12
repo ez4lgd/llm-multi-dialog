@@ -1,5 +1,8 @@
 <template>
   <div class="chat-window">
+    <div class="chat-header">
+      <button class="fav-btn" @click="showFavPanel = true" title="收藏到收藏夹">⭐ 收藏</button>
+    </div>
     <ModelConfigPanel
       :models="models"
       :config="config"
@@ -47,6 +50,7 @@
         @click="handleClear"
       >清空</button>
     </div>
+    <FolderTree v-if="showFavPanel" :visible="showFavPanel" :conversationId="props.conversationId" @close="showFavPanel = false" />
   </div>
 </template>
 
@@ -54,6 +58,7 @@
 import { ref, watch, onMounted, nextTick } from 'vue';
 import MessageItem from './MessageItem.vue';
 import ModelConfigPanel from './ModelConfigPanel.vue';
+import FolderTree from './FolderTree.vue';
 
 const props = defineProps({
   conversationId: { type: String, required: true }
@@ -234,7 +239,11 @@ onMounted(() => {
     autoResizeInput();
   });
 });
+
+ // 收藏夹弹窗逻辑
+const showFavPanel = ref(false);
 </script>
+
 
 <style scoped>
 .chat-window {
@@ -250,6 +259,32 @@ onMounted(() => {
   border: 1.5px solid #2e3657;
   overflow: hidden;
   position: relative;
+}
+.chat-header {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  z-index: 10;
+}
+.fav-btn {
+  background: linear-gradient(90deg, #f7b731 0%, #f5cd79 100%);
+  color: #232a4d;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px 0 #f7b73133;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.fav-btn:hover {
+  background: linear-gradient(90deg, #f5cd79 0%, #f7b731 100%);
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px 0 #f7b73144;
+}
+.fav-btn:active {
+  background: #f7b731;
 }
 .messages-area {
   flex: 1;

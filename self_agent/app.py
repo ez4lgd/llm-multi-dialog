@@ -6,6 +6,7 @@ from core.config import settings
 from core.auth import jwt_auth
 from core.errors import register_exception_handlers
 from modules.conversation import router as conversation_router
+from modules.folders import router as folders_router
 from fastapi import APIRouter
 
 app = FastAPI(
@@ -24,6 +25,7 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(conversation_router, prefix="/api/v1/conversations", tags=["Conversations"])
+app.include_router(folders_router, prefix="/api/v1/folders", tags=["Folders"])
 
 # 新增：/api/v1/models 路由，供前端获取模型列表
 @app.get("/api/v1/models", tags=["Models"])

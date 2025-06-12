@@ -3,6 +3,7 @@
     <div class="sidebar-header">
       <span class="sidebar-title">会话列表</span>
       <button class="new-btn" @click="handleNewConversation">新建会话</button>
+      <button class="folder-btn" @click="showFolderTree = true" title="收藏夹">📁 收藏夹</button>
     </div>
     <div class="sidebar-list" ref="sidebarListRef" @scroll="handleScroll">
       <template v-if="loading">
@@ -39,12 +40,14 @@
         
       </div>
     </div>
+    <FolderTree v-if="showFolderTree" :visible="showFolderTree" @close="showFolderTree = false" />
   </aside>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import FolderTree from './FolderTree.vue';
 
 /**
  * 获取 summary 前 10 个字作为标题，若为空则返回“无摘要”
@@ -68,6 +71,8 @@ const pageSize = 20;
 const hasMore = ref(true);
 const sidebarListRef = ref(null);
 const showLoadMoreBtn = ref(false);
+
+const showFolderTree = ref(false);
 
 async function fetchConversations(reset = false) {
   if (loading.value || isLoadingMore.value) return;
@@ -349,5 +354,26 @@ ul {
 }
 .load-more-btn:active {
   background: #3a7cff;
+}
+.folder-btn {
+  background: linear-gradient(90deg, #f7b731 0%, #f5cd79 100%);
+  color: #232a4d;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  margin-left: 8px;
+  box-shadow: 0 2px 8px 0 #f7b73133;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.folder-btn:hover {
+  background: linear-gradient(90deg, #f5cd79 0%, #f7b731 100%);
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px 0 #f7b73144;
+}
+.folder-btn:active {
+  background: #f7b731;
 }
 </style>
