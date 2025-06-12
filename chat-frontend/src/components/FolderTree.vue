@@ -29,38 +29,10 @@
           <button v-if="!folder.is_default" class="delete-btn" @click="deleteFolder(folder)">删除</button>
 <ul class="conv-list">
   <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
-<span class="conv-summary" :title="getSummary(cid)" @click="handleSelectConversation(cid)" style="cursor:pointer; color:#409EFF; text-decoration:underline;">
+    <span class="conv-summary" :title="getSummary(cid)" @click="handleSelectConversation(cid)" style="cursor:pointer; color:#409EFF; text-decoration:underline;">
       {{ getSummary(cid) }}
     </span>
-    <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
-      <span
-        v-for="tag in tags[cid] || []"
-        :key="tag.id"
-        class="tag-chip"
-        @dblclick="tag._editing = true"
-        style="background:#409EFF22; color:#409EFF; border-radius:4px; padding:2px 8px; margin-right:2px; font-size:12px; display:inline-flex; align-items:center; cursor:pointer;"
-      >
-        <template v-if="!tag._editing">
-          {{ tag.tag }}
-          <span style="margin-left:4px; cursor:pointer;" @click.stop="deleteTag(cid, tag.id)">×</span>
-        </template>
-        <template v-else>
-          <input
-            v-model="tag._editText"
-            @keyup.enter="updateTag(cid, tag, tag._editText); tag._editing=false"
-            @blur="updateTag(cid, tag, tag._editText); tag._editing=false"
-            style="width:60px; font-size:12px; border:1px solid #409EFF; border-radius:3px; padding:1px 4px;"
-          />
-        </template>
-      </span>
-      <input
-        v-model="newTagInput[cid]"
-        @keyup.enter="addTag(cid)"
-        class="tag-input"
-        placeholder="添加标签，回车确认"
-        style="width:90px; font-size:12px;"
-      />
-    </div>
+    <ConversationTags :conversation-id="cid" />
     <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
   </li>
 </ul>
@@ -79,6 +51,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import ConversationTags from './ConversationTags.vue';
 
 const props = defineProps({
   visible: Boolean,
@@ -87,82 +60,10 @@ const props = defineProps({
 const emits = defineEmits(['close', 'select-conversation']);
 
 const summaries = ref({});
-// tags: { [cid]: TagObject[] }
-const tags = ref({});
-const newTagInput = ref({}); // { [cid]: string }
 
 // 获取 summary
 function getSummary(cid) {
   return summaries.value[cid] || cid;
-}
-
-// 加载所有会话的标签
-async function loadTags() {
-  tags.value = {};
-  const cids = [];
-  folders.value.forEach(f => {
-    f.conversation_ids.forEach(cid => {
-      if (!cids.includes(cid)) cids.push(cid);
-    });
-  });
-  await Promise.all(
-    cids.map(async (cid) => {
-      try {
-        const res = await fetch(`/api/v1/conversation_tags/?conversation_id=${cid}`);
-        const data = await res.json();
-        tags.value[cid] = Array.isArray(data.tags) ? data.tags : [];
-      } catch {
-        tags.value[cid] = [];
-      }
-    })
-  );
-}
-
-// 新增标签
-async function addTag(cid) {
-  const tagText = (newTagInput.value[cid] || '').trim();
-  if (!tagText) return;
-  try {
-    const res = await fetch('/api/v1/conversation_tags/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversation_id: cid, tag: tagText })
-    });
-    const tagObj = await res.json();
-    tags.value[cid] = tags.value[cid] || [];
-    tags.value[cid].push(tagObj);
-    newTagInput.value[cid] = '';
-  } catch (e) {
-    alert('添加标签失败：' + (e?.message || ''));
-  }
-}
-
-// 删除标签
-async function deleteTag(cid, tagId) {
-  try {
-    await fetch(`/api/v1/conversation_tags/${tagId}`, { method: 'DELETE' });
-    tags.value[cid] = (tags.value[cid] || []).filter(t => t.id !== tagId);
-  } catch (e) {
-    alert('删除标签失败：' + (e?.message || ''));
-  }
-}
-
-// 修改标签
-async function updateTag(cid, tagObj, newText) {
-  const text = newText.trim();
-  if (!text || text === tagObj.tag) return;
-  try {
-    const res = await fetch(`/api/v1/conversation_tags/${tagObj.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag: text })
-    });
-    const updated = await res.json();
-    const idx = (tags.value[cid] || []).findIndex(t => t.id === tagObj.id);
-    if (idx !== -1) tags.value[cid][idx] = updated;
-  } catch (e) {
-    alert('修改标签失败：' + (e?.message || ''));
-  }
 }
 
 // 选中会话
@@ -209,7 +110,6 @@ async function fetchFolders() {
   const data = await res.json();
   folders.value = Array.isArray(data.data) ? data.data : [];
   await fetchSummaries();
-  loadTags();
 }
 
 async function createFolder() {
