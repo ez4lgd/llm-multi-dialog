@@ -44,9 +44,6 @@ onMounted(async () => {
 
 <template>
   <div class="app-root">
-    <header class="app-header">
-      <span class="app-title">多轮对话演示系统</span>
-    </header>
     <div class="main-layout">
       <ConversationSidebar
         :key="sidebarKey"
@@ -65,6 +62,9 @@ onMounted(async () => {
         <div v-else class="no-conv">暂无会话，请新建会话</div>
       </div>
     </div>
+    <!-- <header class="app-header">
+      <span class="app-title">MyChat</span>
+    </header> -->
   </div>
 </template>
 
@@ -73,31 +73,41 @@ onMounted(async () => {
   height: 100vh;
   background: linear-gradient(120deg, #181c2f 60%, #232a4d 100%);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
+  position: relative;
 }
 .app-header {
-  height: 54px;
-  background: linear-gradient(90deg, #3a7cff 0%, #7f5fff 100%);
-  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  color: #ececec;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: bold;
-  letter-spacing: 2.5px;
-  box-shadow: 0 2px 12px #3a7cff33, 0 2px 8px #7f5fff22;
-  z-index: 10;
-  border-bottom: 1.5px solid #2e3657;
-  text-shadow: 0 0 12px #fff8, 0 0 4px #7f5fff;
+  justify-content: flex-start;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: none;
+  z-index: 20;
+  border-bottom: 1px solid #232323;
+  text-shadow: none;
   user-select: none;
+  padding: 0 0 0 28px;
+  pointer-events: none; /* 允许内容覆盖header */
 }
 .main-layout {
-  flex: 1;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   min-width: 0;
   min-height: 0;
   background: transparent;
+  position: relative;
+  z-index: 1;
 }
 .main-content {
   flex: 1;
@@ -105,10 +115,10 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background: rgba(24,28,47,0.92);
-  border-radius: 18px;
-  margin: 18px 24px;
+  border-radius: 0;
+  margin: 0;
   padding: 0;
-  box-shadow: 0 4px 32px 0 #3a7cff22, 0 2px 8px 0 #7f5fff22;
+  box-shadow: none;
   overflow: hidden;
   position: relative;
 }

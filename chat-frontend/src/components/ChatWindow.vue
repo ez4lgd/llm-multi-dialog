@@ -248,7 +248,7 @@ const showFavPanel = ref(false);
 <style scoped>
 .chat-window {
   background: rgba(24,28,47,0.98);
-  border-radius: 18px;
+  border-radius: 0;
   box-shadow: 0 4px 32px #3a7cff22, 0 2px 8px #7f5fff22;
   margin: 0;
   padding: 0;
