@@ -26,12 +26,21 @@
           </template>
           <button v-if="!folder.is_default" class="rename-btn" @click="startRename(folder)">重命名</button>
           <button v-if="!folder.is_default" class="delete-btn" @click="deleteFolder(folder)">删除</button>
-          <ul class="conv-list">
-            <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
-              <span>{{ cid }}</span>
-              <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
-            </li>
-          </ul>
+<ul class="conv-list">
+  <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
+    <span class="conv-summary" @click="handleSelectConversation(cid)" style="cursor:pointer; color:#409EFF; text-decoration:underline;">
+      {{ getSummary(cid) }}
+    </span>
+    <input
+      v-model="tags[cid]"
+      @change="saveTag(cid)"
+      class="tag-input"
+      placeholder="自定义标签"
+      style="margin-left:8px; width:90px; font-size:12px;"
+    />
+    <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
+  </li>
+</ul>
         </li>
       </ul>
       <div v-if="folders.length === 0" class="empty-tip">暂无收藏夹</div>
@@ -51,7 +60,62 @@ const props = defineProps({
   visible: Boolean,
   conversationId: String // 可选，传入则支持对该会话收藏/移除
 });
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close', 'select-conversation']);
+
+// 会话摘要和标签
+const summaries = ref({});
+const tags = ref({});
+
+// 获取 summary
+function getSummary(cid) {
+  return summaries.value[cid] || cid;
+}
+
+// 标签持久化
+function loadTags() {
+  tags.value = {};
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('conv_tag_'))
+    .forEach(k => {
+      const cid = k.replace('conv_tag_', '');
+      tags.value[cid] = localStorage.getItem(k) || '';
+    });
+}
+function saveTag(cid) {
+  if (tags.value[cid]) {
+    localStorage.setItem('conv_tag_' + cid, tags.value[cid]);
+  } else {
+    localStorage.removeItem('conv_tag_' + cid);
+  }
+}
+
+// 选中会话
+function handleSelectConversation(cid) {
+  emits('select-conversation', cid);
+}
+
+// 批量获取 summary
+async function fetchSummaries() {
+  const cids = [];
+  folders.value.forEach(f => {
+    f.conversation_ids.forEach(cid => {
+      if (!cids.includes(cid)) cids.push(cid);
+    });
+  });
+  const summaryMap = {};
+  await Promise.all(
+    cids.map(async (cid) => {
+      try {
+        const res = await fetch(`/api/v1/conversations/${cid}?size=1`);
+        const data = await res.json();
+        summaryMap[cid] = data?.data?.summary || cid;
+      } catch {
+        summaryMap[cid] = cid;
+      }
+    })
+  );
+  summaries.value = summaryMap;
+}
 
 const folders = ref([]);
 const newFolderName = ref('');
@@ -68,6 +132,8 @@ async function fetchFolders() {
   const res = await fetch('/api/v1/folders/');
   const data = await res.json();
   folders.value = Array.isArray(data.data) ? data.data : [];
+  await fetchSummaries();
+  loadTags();
 }
 
 async function createFolder() {
@@ -264,5 +330,19 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+.tag-input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  outline: none;
+  transition: border 0.18s;
+}
+.tag-input:focus {
+  border: 1.5px solid #409EFF;
+}
+.conv-summary:hover {
+  text-decoration: underline;
+  color: #7f5fff;
 }
 </style>

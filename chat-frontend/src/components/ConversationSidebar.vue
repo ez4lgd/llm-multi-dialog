@@ -40,7 +40,12 @@
         
       </div>
     </div>
-    <FolderTree v-if="showFolderTree" :visible="showFolderTree" @close="showFolderTree = false" />
+<FolderTree
+  v-if="showFolderTree"
+  :visible="showFolderTree"
+  @close="showFolderTree = false"
+  @select-conversation="handleSelect"
+/>
   </aside>
 </template>
 
