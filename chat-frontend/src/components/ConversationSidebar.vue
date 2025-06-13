@@ -108,7 +108,7 @@ async function fetchConversations(reset = false) {
             : null;
         })
       );
-      const filtered = detailList.filter(Boolean);
+      const filtered = detailList.filter(item => item && item.conversation_id);
       if (reset) {
         allConversations.value = filtered;
       } else {
