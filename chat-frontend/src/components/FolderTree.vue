@@ -1,50 +1,101 @@
 <template>
   <div class="folder-tree-modal" v-if="visible">
-    <div class="folder-tree-content">
+    <div class="folder-tree-content folder-tree-flex">
       <div class="folder-tree-header">
         <span>收藏夹</span>
         <button class="close-btn" @click="close">×</button>
       </div>
-      <div class="folder-tree-body">
-      <div class="folder-tree-actions">
-        <input v-model="newFolderName" placeholder="新建收藏夹名称" @keyup.enter="createFolder" />
-        <button @click="createFolder" :disabled="creating">新建</button>
-      </div>
-      <ul class="folder-list">
-        <li v-for="folder in folders" :key="folder.folder_id" class="folder-item">
-          <span class="folder-name" :title="folder.name">{{ folder.name }}</span>
-          <template v-if="conversationId">
-            <button
-              v-if="folder.conversation_ids.includes(conversationId)"
-              class="remove-btn"
-              @click="removeConvFromFolder(folder, conversationId)"
-            >移除当前会话</button>
-            <button
-              v-else
-              class="add-btn"
-              @click="addConvToFolder(folder, conversationId)"
-            >添加当前会话</button>
+      <div class="folder-tree-body folder-tree-body-flex">
+        <!-- 左侧目录栏 -->
+        <div class="folder-tree-sidebar">
+          <div
+            class="sidebar-item"
+            :class="{ active: selectedFolderId === 'all' }"
+            @click="selectedFolderId = 'all'"
+          >全部</div>
+          <div
+            v-for="folder in folders"
+            :key="folder.folder_id"
+            class="sidebar-item"
+            :class="{ active: selectedFolderId === folder.folder_id }"
+            @click="selectedFolderId = folder.folder_id"
+          >{{ folder.name }}</div>
+        </div>
+        <!-- 右侧内容区 -->
+        <div class="folder-tree-main">
+          <div class="folder-tree-actions">
+            <input v-model="newFolderName" placeholder="新建收藏夹名称" @keyup.enter="createFolder" />
+            <button @click="createFolder" :disabled="creating">新建</button>
+          </div>
+          <template v-if="selectedFolderId === 'all'">
+            <ul class="folder-list">
+              <li v-for="folder in folders" :key="folder.folder_id" class="folder-item">
+                <span class="folder-name" :title="folder.name">{{ folder.name }}</span>
+                <template v-if="conversationId">
+                  <button
+                    v-if="folder.conversation_ids.includes(conversationId)"
+                    class="remove-btn"
+                    @click="removeConvFromFolder(folder, conversationId)"
+                  >移除当前会话</button>
+                  <button
+                    v-else
+                    class="add-btn"
+                    @click="addConvToFolder(folder, conversationId)"
+                  >添加当前会话</button>
+                </template>
+                <button v-if="!folder.is_default" class="rename-btn" @click="startRename(folder)">重命名</button>
+                <button v-if="!folder.is_default" class="delete-btn" @click="deleteFolder(folder)">删除</button>
+                <ul class="conv-list">
+                  <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
+                    <span class="conv-summary" :title="getSummary(cid)" @click="handleSelectConversation(cid)">
+                      {{ getSummary(cid) }}
+                    </span>
+                    <ConversationTags :conversation-id="cid" />
+                    <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <div v-if="folders.length === 0" class="empty-tip">暂无收藏夹</div>
           </template>
-          <button v-if="!folder.is_default" class="rename-btn" @click="startRename(folder)">重命名</button>
-          <button v-if="!folder.is_default" class="delete-btn" @click="deleteFolder(folder)">删除</button>
-<ul class="conv-list">
-  <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
-    <span class="conv-summary" :title="getSummary(cid)" @click="handleSelectConversation(cid)" style="cursor:pointer; color:#409EFF; text-decoration:underline;">
-      {{ getSummary(cid) }}
-    </span>
-    <ConversationTags :conversation-id="cid" />
-    <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
-  </li>
-</ul>
-        </li>
-      </ul>
-      <div v-if="folders.length === 0" class="empty-tip">暂无收藏夹</div>
-    </div>
-    <div v-if="renamingFolder" class="rename-modal">
-      <input v-model="renameName" placeholder="新名称" @keyup.enter="confirmRename" />
-      <button @click="confirmRename">确定</button>
-      <button @click="cancelRename">取消</button>
-    </div>
+          <template v-else>
+            <ul class="folder-list">
+              <li v-for="folder in folders" v-if="folder.folder_id === selectedFolderId" :key="folder.folder_id" class="folder-item">
+                <span class="folder-name" :title="folder.name">{{ folder.name }}</span>
+                <template v-if="conversationId">
+                  <button
+                    v-if="folder.conversation_ids.includes(conversationId)"
+                    class="remove-btn"
+                    @click="removeConvFromFolder(folder, conversationId)"
+                  >移除当前会话</button>
+                  <button
+                    v-else
+                    class="add-btn"
+                    @click="addConvToFolder(folder, conversationId)"
+                  >添加当前会话</button>
+                </template>
+                <button v-if="!folder.is_default" class="rename-btn" @click="startRename(folder)">重命名</button>
+                <button v-if="!folder.is_default" class="delete-btn" @click="deleteFolder(folder)">删除</button>
+                <ul class="conv-list">
+                  <li v-for="cid in folder.conversation_ids" :key="cid" class="conv-item">
+                    <span class="conv-summary" :title="getSummary(cid)" @click="handleSelectConversation(cid)">
+                      {{ getSummary(cid) }}
+                    </span>
+                    <ConversationTags :conversation-id="cid" />
+                    <button class="remove-btn" @click="removeConv(folder, cid)">移除</button>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <div v-if="folders.length === 0" class="empty-tip">暂无收藏夹</div>
+          </template>
+        </div>
+      </div>
+      <div v-if="renamingFolder" class="rename-modal">
+        <input v-model="renameName" placeholder="新名称" @keyup.enter="confirmRename" />
+        <button @click="confirmRename">确定</button>
+        <button @click="cancelRename">取消</button>
+      </div>
     </div>
   </div>
 </template>
@@ -60,6 +111,9 @@ const props = defineProps({
 const emits = defineEmits(['close', 'select-conversation']);
 
 const summaries = ref({});
+
+// 新增：当前选中的收藏夹id，默认'all'
+const selectedFolderId = ref('all');
 
 // 获取 summary
 function getSummary(cid) {
@@ -202,6 +256,8 @@ async function removeConvFromFolder(folder, cid) {
 
 watch(() => props.visible, (v) => {
   if (v) fetchFolders();
+  // 弹窗每次打开时重置为全部
+  if (v) selectedFolderId.value = 'all';
 });
 onMounted(() => {
   if (props.visible) fetchFolders();
@@ -219,14 +275,21 @@ onMounted(() => {
   justify-content: center;
 }
 .folder-tree-content {
-  display: flex;
-  flex-direction: column;
-  min-width: 420px;
-  min-height: 320px;
+  min-width: 520px;
+  min-height: 340px;
   border-radius: 10px;
   box-shadow: 0 4px 32px 0 #0008;
   overflow: hidden;
   background: none;
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  max-height: 90vh;
+}
+.folder-tree-flex {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .folder-tree-header {
   background: #23272f;
@@ -241,21 +304,57 @@ onMounted(() => {
   align-items: center;
   border-bottom: 1px solid #333a4a;
 }
-.close-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  transition: color 0.18s;
-}
-.close-btn:hover {
-  color: #ff5c5c;
-}
 .folder-tree-body {
   background: #1e1e23;
-  padding: 20px 28px;
   color: #e6e6e6;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+}
+.folder-tree-body-flex {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+.folder-tree-sidebar {
+  width: 120px;
+  background: #23272f;
+  border-right: 1px solid #333a4a;
+  padding: 18px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.sidebar-item {
+  padding: 8px 18px;
+  color: #bdbfff;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 2px;
+  transition: background 0.18s, color 0.18s;
+  user-select: none;
+}
+.sidebar-item.active, .sidebar-item:hover {
+  background: linear-gradient(90deg, #409EFF22 60%, #7f5fff22 100%);
+  color: #7f5fff;
+}
+.folder-tree-main {
+  flex: 1;
+  padding: 20px 28px;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  height: 100%;
+  background: #1e1e23;
+  display: flex;
+  flex-direction: column;
 }
 .folder-tree-actions {
   margin-bottom: 14px;
