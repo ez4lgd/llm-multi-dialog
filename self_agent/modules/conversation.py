@@ -84,7 +84,9 @@ async def list_conversations(
     # user=Depends(jwt_auth)
 ):
     # 遍历 /data 目录，获取所有会话 id 及 created_at
-    all_files = [p for p in DATA_DIR.glob("*.json")]
+    # 过滤收藏夹和tags.json
+    exclude_files = {"folders", "tags"}
+    all_files = [p for p in DATA_DIR.glob("*.json") if p.stem not in exclude_files]
     conversations = []
     for p in all_files:
         try:
